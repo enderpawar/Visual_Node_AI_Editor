@@ -288,9 +288,15 @@ print(f"Selected {k} best features from {${xTrainVar}.shape[1]} features")`
             if (algorithm === 'RandomForest') {
                 modelCode = `RandomForestClassifier(n_estimators=${nEstimators}, random_state=42)`
             } else if (algorithm === 'LogisticRegression') {
-                modelCode = `LogisticRegression(random_state=42)`
+                modelCode = `LogisticRegression(random_state=42, max_iter=1000)`
             } else if (algorithm === 'SVM') {
                 modelCode = `SVC(random_state=42)`
+            } else if (algorithm === 'DecisionTree') {
+                modelCode = `DecisionTreeClassifier(random_state=42)`
+            } else if (algorithm === 'KNN') {
+                modelCode = `KNeighborsClassifier(n_neighbors=5)`
+            } else if (algorithm === 'GradientBoosting') {
+                modelCode = `GradientBoostingClassifier(n_estimators=${nEstimators}, random_state=42)`
             } else {
                 modelCode = `RandomForestClassifier(n_estimators=${nEstimators}, random_state=42)`
             }
@@ -332,8 +338,14 @@ print(f"Training score: {step_${nodeId}_model.score(${xTrainVar}, ${yTrainVar}):
                 modelCode = `LinearRegression()`
             } else if (algorithm === 'Ridge') {
                 modelCode = `Ridge(random_state=42)`
-            } else if (algorithm === 'RandomForest') {
+            } else if (algorithm === 'Lasso') {
+                modelCode = `Lasso(random_state=42)`
+            } else if (algorithm === 'RandomForestRegressor') {
                 modelCode = `RandomForestRegressor(random_state=42)`
+            } else if (algorithm === 'SVR') {
+                modelCode = `SVR()`
+            } else if (algorithm === 'GradientBoostingRegressor') {
+                modelCode = `GradientBoostingRegressor(random_state=42)`
             } else {
                 modelCode = `LinearRegression()`
             }
@@ -537,19 +549,22 @@ function generateImports(nodes: NodeData[]): string {
                 imports.add('from sklearn.model_selection import train_test_split')
                 break
             case 'scaler':
-                imports.add('from sklearn.preprocessing import StandardScaler, MinMaxScaler')
+                imports.add('from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, MaxAbsScaler')
                 break
             case 'featureSelection':
                 imports.add('from sklearn.feature_selection import SelectKBest, f_classif')
                 break
             case 'classifier':
-                imports.add('from sklearn.ensemble import RandomForestClassifier')
+                imports.add('from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier')
                 imports.add('from sklearn.linear_model import LogisticRegression')
                 imports.add('from sklearn.svm import SVC')
+                imports.add('from sklearn.tree import DecisionTreeClassifier')
+                imports.add('from sklearn.neighbors import KNeighborsClassifier')
                 break
             case 'regressor':
-                imports.add('from sklearn.linear_model import LinearRegression, Ridge')
-                imports.add('from sklearn.ensemble import RandomForestRegressor')
+                imports.add('from sklearn.linear_model import LinearRegression, Ridge, Lasso')
+                imports.add('from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor')
+                imports.add('from sklearn.svm import SVR')
                 break
             case 'neuralNet':
                 imports.add('from sklearn.neural_network import MLPClassifier')

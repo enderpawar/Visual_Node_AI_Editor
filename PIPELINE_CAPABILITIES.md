@@ -13,6 +13,9 @@
 #### **DataLoader** (데이터 로더)
 - **기능**: CSV 파일 업로드 또는 파일 경로로 데이터 로드
 - **출력**: 전체 데이터셋
+- **UI**: 
+  - ✅ **드롭다운 메뉴**: 업로드된 CSV 파일 목록에서 선택
+  - 파일이 없으면 직접 경로 입력
 - **생성 코드**:
   ```python
   # 브라우저에서 업로드한 CSV를 Base64로 임베드
@@ -22,6 +25,7 @@
 - **특징**: 
   - ✅ 업로드된 CSV를 코드에 직접 포함 (별도 파일 불필요)
   - ✅ 데이터 미리보기 (.head() 출력)
+  - ✅ 사용 가능한 데이터 목록 자동 표시
 
 #### **DataSplit** (데이터 분할)
 - **기능**: 훈련/테스트 데이터 분할
@@ -40,7 +44,12 @@
 
 #### **Scaler** (스케일러)
 - **기능**: 데이터 정규화/표준화
-- **설정**: `method` - StandardScaler / MinMaxScaler
+- **UI**: 
+  - ✅ **드롭다운 메뉴**: 4가지 스케일링 방법 선택
+    - StandardScaler (평균 0, 분산 1)
+    - MinMaxScaler (0~1 범위)
+    - RobustScaler (이상치에 강건)
+    - MaxAbsScaler (-1~1 범위)
 - **입력**: `X_train`, `X_test` (선택)
 - **출력**: `X_train` (스케일된), `X_test` (스케일된)
 - **생성 코드**:
@@ -51,6 +60,7 @@
   ```
 - **특징**: 
   - ✅ 훈련 데이터로 fit, 테스트 데이터는 transform만 (데이터 누수 방지)
+  - ✅ 직관적인 드롭다운으로 방법 선택
 
 #### **FeatureSelection** (특성 선택)
 - **기능**: 가장 중요한 k개 특성 선택
@@ -70,11 +80,15 @@
 ### 2️⃣ 모델 노드
 
 #### **Classifier** (분류 모델)
-- **지원 알고리즘**:
-  - RandomForest (기본)
-  - LogisticRegression
-  - SVM
-- **설정**: `n_estimators` (RandomForest 전용)
+- **UI**: 
+  - ✅ **드롭다운 메뉴**: 6가지 분류 알고리즘 선택
+    - Random Forest (앙상블)
+    - Logistic Regression (선형)
+    - SVM (서포트 벡터 머신)
+    - Decision Tree (의사결정 트리)
+    - K-Nearest Neighbors (KNN)
+    - Gradient Boosting (부스팅)
+- **설정**: `n_estimators` (RandomForest/GradientBoosting 전용)
 - **입력**: `X_train`, `y_train`
 - **출력**: `model`
 - **생성 코드**:
@@ -85,10 +99,14 @@
   ```
 
 #### **Regressor** (회귀 모델)
-- **지원 알고리즘**:
-  - LinearRegression
-  - Ridge
-  - RandomForestRegressor
+- **UI**: 
+  - ✅ **드롭다운 메뉴**: 6가지 회귀 알고리즘 선택
+    - Linear Regression (선형 회귀)
+    - Ridge (L2 정규화)
+    - Lasso (L1 정규화)
+    - Random Forest Regressor
+    - SVR (서포트 벡터 회귀)
+    - Gradient Boosting Regressor
 - **입력**: `X_train`, `y_train`
 - **출력**: `model`
 - **생성 코드**:

@@ -2,12 +2,48 @@ import React, { useState, useCallback } from 'react';
 import { loadCSVFile, saveCSVData, listStoredCSVFiles, deleteStoredCSV, validateCSV } from '../utils/csvHandler';
 import { useToast } from './toast/ToastProvider';
 
-const CSVDataManager = ({ onSelectFile }) => {
+const CSVDataManager = ({ onSelectFile, theme = 'dark' }) => {
     const toast = useToast();
     const [uploadedFiles, setUploadedFiles] = useState(listStoredCSVFiles());
     const [selectedFile, setSelectedFile] = useState(null);
     const [preview, setPreview] = useState(null);
     const [showUploader, setShowUploader] = useState(false);
+
+    // 테마에 따른 색상 정의
+    const colors = {
+        dark: {
+            bg: 'bg-neutral-900/60',
+            border: 'border-neutral-800/70',
+            title: 'text-gray-200',
+            text: 'text-gray-300',
+            muted: 'text-gray-400',
+            mutedLight: 'text-gray-500',
+            sectionBg: 'bg-neutral-950',
+            sectionBorder: 'border-neutral-800',
+            itemBorder: 'border-neutral-700',
+            itemBg: 'bg-neutral-800',
+            itemHoverText: 'hover:text-white',
+            selectedBorder: 'border-cyan-500',
+            selectedBg: 'bg-cyan-950/30'
+        },
+        light: {
+            bg: 'bg-white/80',
+            border: 'border-gray-300',
+            title: 'text-gray-800',
+            text: 'text-gray-700',
+            muted: 'text-gray-600',
+            mutedLight: 'text-gray-500',
+            sectionBg: 'bg-gray-50',
+            sectionBorder: 'border-gray-200',
+            itemBorder: 'border-gray-300',
+            itemBg: 'bg-gray-100',
+            itemHoverText: 'hover:text-gray-900',
+            selectedBorder: 'border-cyan-600',
+            selectedBg: 'bg-cyan-50'
+        }
+    };
+
+    const c = colors[theme] || colors.dark;
 
     const handleFileUpload = useCallback(async (e) => {
         const file = e.target.files?.[0];
@@ -68,9 +104,9 @@ const CSVDataManager = ({ onSelectFile }) => {
     }, [onSelectFile]);
 
     return (
-        <div className="csv-data-manager p-4 bg-neutral-900/60 rounded-2xl border border-neutral-800/70">
+        <div className={`csv-data-manager p-4 ${c.bg} rounded-2xl border ${c.border}`}>
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-200">📊 CSV 데이터 관리</h3>
+                <h3 className={`text-lg font-semibold ${c.title}`}>📊 CSV 데이터 관리</h3>
                 <button
                     onClick={() => setShowUploader(!showUploader)}
                     className="px-3 py-1 text-sm font-semibold text-white bg-cyan-600 rounded hover:bg-cyan-500"
@@ -81,23 +117,23 @@ const CSVDataManager = ({ onSelectFile }) => {
 
             {/* 파일 업로드 영역 */}
             {showUploader && (
-                <div className="mb-4 p-4 bg-neutral-950 rounded-lg border border-neutral-800">
-                    <label className="block mb-2 text-sm font-medium text-gray-300">
+                <div className={`mb-4 p-4 ${c.sectionBg} rounded-lg border ${c.sectionBorder}`}>
+                    <label className={`block mb-2 text-sm font-medium ${c.text}`}>
                         CSV 파일 선택
                     </label>
                     <input
                         type="file"
                         accept=".csv"
                         onChange={handleFileUpload}
-                        className="block w-full text-sm text-gray-400
+                        className={`block w-full text-sm ${c.muted}
                             file:mr-4 file:py-2 file:px-4
                             file:rounded file:border-0
                             file:text-sm file:font-semibold
                             file:bg-cyan-600 file:text-white
                             hover:file:bg-cyan-500
-                            cursor-pointer"
+                            cursor-pointer`}
                     />
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className={`mt-2 text-xs ${c.mutedLight}`}>
                         CSV 파일을 선택하면 브라우저에 저장됩니다
                     </p>
                 </div>
@@ -105,9 +141,9 @@ const CSVDataManager = ({ onSelectFile }) => {
 
             {/* 업로드된 파일 목록 */}
             <div className="space-y-2">
-                <h4 className="text-sm font-medium text-gray-400">저장된 파일</h4>
+                <h4 className={`text-sm font-medium ${c.muted}`}>저장된 파일</h4>
                 {uploadedFiles.length === 0 ? (
-                    <p className="text-sm text-gray-500">저장된 CSV 파일이 없습니다</p>
+                    <p className={`text-sm ${c.mutedLight}`}>저장된 CSV 파일이 없습니다</p>
                 ) : (
                     <div className="space-y-1">
                         {uploadedFiles.map((fileName) => (
@@ -115,13 +151,13 @@ const CSVDataManager = ({ onSelectFile }) => {
                                 key={fileName}
                                 className={`flex items-center justify-between p-2 rounded border ${
                                     selectedFile === fileName
-                                        ? 'bg-cyan-900/30 border-cyan-600'
-                                        : 'bg-neutral-800/50 border-neutral-700'
+                                        ? `${c.selectedBg} ${c.selectedBorder}`
+                                        : `${c.itemBg}/50 ${c.itemBorder}`
                                 } hover:bg-neutral-700/50`}
                             >
                                 <button
                                     onClick={() => handleSelectFile(fileName)}
-                                    className="flex-1 text-left text-sm text-gray-300 hover:text-white"
+                                    className={`flex-1 text-left text-sm ${c.text} ${c.itemHoverText}`}
                                 >
                                     📄 {fileName}
                                 </button>
@@ -140,15 +176,15 @@ const CSVDataManager = ({ onSelectFile }) => {
 
             {/* 미리보기 */}
             {preview && (
-                <div className="mt-4 p-3 bg-neutral-950 rounded-lg border border-neutral-800">
-                    <h4 className="text-sm font-medium text-gray-300 mb-2">미리보기</h4>
+                <div className={`mt-4 p-3 ${c.sectionBg} rounded-lg border ${c.sectionBorder}`}>
+                    <h4 className={`text-sm font-medium ${c.text} mb-2`}>미리보기</h4>
                     <div className="overflow-x-auto">
-                        <table className="min-w-full text-xs text-gray-400">
+                        <table className={`min-w-full text-xs ${c.muted}`}>
                             <tbody>
                                 {preview.preview.slice(0, 5).map((row, i) => (
-                                    <tr key={i} className={i === 0 ? 'font-semibold text-cyan-400' : ''}>
+                                    <tr key={i} className={i === 0 ? 'font-semibold text-cyan-600' : ''}>
                                         {row.map((cell, j) => (
-                                            <td key={j} className="px-2 py-1 border-b border-neutral-800">
+                                            <td key={j} className={`px-2 py-1 border-b ${c.sectionBorder}`}>
                                                 {cell}
                                             </td>
                                         ))}
@@ -157,7 +193,7 @@ const CSVDataManager = ({ onSelectFile }) => {
                             </tbody>
                         </table>
                     </div>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className={`mt-2 text-xs ${c.mutedLight}`}>
                         총 {preview.rows}행 × {preview.columns}열
                     </p>
                 </div>

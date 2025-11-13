@@ -689,19 +689,22 @@ const LogicEditorPage = ({ selectedLogicId, onBack, onSave, defaultNewLogicName 
             {/* 3. 정보 및 실행 패널 (오른쪽 사이드바) */}
             <div className="w-1/5 flex flex-col gap-4" style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
                 {/* 초보자 가이드 */}
-                <BeginnerGuide />
+                <BeginnerGuide theme={theme} />
                 
                 {/* 빠른 시작 템플릿 */}
-                <QuickStartTemplates onApplyTemplate={applyPipelineToCanvas} />
+                <QuickStartTemplates onApplyTemplate={applyPipelineToCanvas} theme={theme} />
                 
                 {/* Gemini AI Python 코드 생성기 */}
                 <GeminiPipelineGenerator onApplyPipeline={applyPipelineToCanvas} />
                 
                 {/* CSV 데이터 관리 */}
-                <CSVDataManager onSelectFile={(fileName) => {
-                    console.log('Selected CSV:', fileName);
-                    toast.success(`${fileName} 선택됨`);
-                }} />
+                <CSVDataManager 
+                    onSelectFile={(fileName) => {
+                        console.log('Selected CSV:', fileName);
+                        toast.success(`${fileName} 선택됨`);
+                    }} 
+                    theme={theme}
+                />
                 
                 {/* 정보 패널 */}
                 <div className="p-4 bg-neutral-900/60 rounded-2xl border border-neutral-800/70 flex flex-col">

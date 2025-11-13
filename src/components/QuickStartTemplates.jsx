@@ -3,7 +3,39 @@ import React from 'react';
 /**
  * 초보자를 위한 빠른 시작 템플릿 컴포넌트
  */
-const QuickStartTemplates = ({ onApplyTemplate }) => {
+const QuickStartTemplates = ({ onApplyTemplate, theme = 'dark' }) => {
+    // 테마에 따른 색상 정의
+    const colors = {
+        dark: {
+            bg: 'bg-neutral-900/60',
+            border: 'border-neutral-800/70',
+            buttonBg: 'bg-neutral-800/80',
+            buttonBorder: 'border-neutral-700',
+            buttonHover: 'hover:bg-neutral-700 hover:border-cyan-500/50',
+            title: 'text-cyan-400',
+            text: 'text-gray-200',
+            muted: 'text-gray-400',
+            tipBg: 'bg-cyan-900/20',
+            tipBorder: 'border-cyan-700/30',
+            tipText: 'text-cyan-300'
+        },
+        light: {
+            bg: 'bg-white/80',
+            border: 'border-gray-300',
+            buttonBg: 'bg-gray-100',
+            buttonBorder: 'border-gray-300',
+            buttonHover: 'hover:bg-gray-200 hover:border-cyan-600',
+            title: 'text-cyan-600',
+            text: 'text-gray-800',
+            muted: 'text-gray-600',
+            tipBg: 'bg-cyan-50',
+            tipBorder: 'border-cyan-300',
+            tipText: 'text-cyan-700'
+        }
+    };
+
+    const c = colors[theme] || colors.dark;
+
     const templates = [
         {
             name: '🎯 기본 분류',
@@ -209,12 +241,12 @@ const QuickStartTemplates = ({ onApplyTemplate }) => {
     ];
 
     return (
-        <div className="p-4 bg-neutral-900/60 rounded-2xl border border-neutral-800/70">
+        <div className={`p-4 ${c.bg} rounded-2xl border ${c.border}`}>
             <div className="mb-3">
-                <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
+                <h3 className={`text-lg font-semibold ${c.title} flex items-center gap-2`}>
                     🚀 빠른 시작
                 </h3>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className={`text-xs ${c.muted} mt-1`}>
                     템플릿을 선택하여 기본 파이프라인을 자동으로 생성하세요
                 </p>
             </div>
@@ -224,21 +256,21 @@ const QuickStartTemplates = ({ onApplyTemplate }) => {
                     <button
                         key={index}
                         onClick={() => onApplyTemplate(template)}
-                        className="p-3 text-left bg-neutral-800/80 border border-neutral-700 rounded-lg hover:bg-neutral-700 hover:border-cyan-500/50 transition-all"
+                        className={`p-3 text-left ${c.buttonBg} border ${c.buttonBorder} rounded-lg ${c.buttonHover} transition-all`}
                         title="클릭하여 이 템플릿 적용"
                     >
-                        <div className="font-semibold text-sm text-gray-200">
+                        <div className={`font-semibold text-sm ${c.text}`}>
                             {template.name}
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">
+                        <div className={`text-xs ${c.muted} mt-1`}>
                             {template.description}
                         </div>
                     </button>
                 ))}
             </div>
 
-            <div className="mt-4 p-3 bg-cyan-900/20 border border-cyan-700/30 rounded-lg">
-                <div className="text-xs text-cyan-300">
+            <div className={`mt-4 p-3 ${c.tipBg} border ${c.tipBorder} rounded-lg`}>
+                <div className={`text-xs ${c.tipText}`}>
                     💡 <strong>팁:</strong> 템플릿 적용 후 각 노드를 클릭하여 설정을 변경하세요!
                 </div>
             </div>

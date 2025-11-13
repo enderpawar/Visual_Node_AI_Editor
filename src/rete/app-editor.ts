@@ -9,7 +9,9 @@ import { createRoot } from 'react-dom/client'
 import { CustomNode } from '../customization/CustomNode.tsx'
 import { CustomSocket } from '../customization/CustomSocket'
 import { CustomConnection } from '../customization/CustomConnection'
+import { SelectControl, SelectControlComponent } from '../customization/SelectControl.tsx'
 import { addCustomBackground } from '../customization/custom-background'
+import { listStoredCSVFiles } from '../utils/csvHandler'
 import '../customization/background.css'
 
 // -------------------- 타입 선언/유틸 --------------------
@@ -61,9 +63,30 @@ export class DataLoaderNode extends TradeNode {
     constructor() {
         super('Data Loader')
         this.addOutput('data', new ClassicPreset.Output(numberSocket, '데이터'))
-        this.addControl('fileName', new ClassicPreset.InputControl('text', { initial: 'data.csv' }))
+        
+        // localStorage에서 업로드된 CSV 파일 목록 가져오기
+        const uploadedFiles = listStoredCSVFiles()
+        
+        if (uploadedFiles.length > 0) {
+            // 업로드된 파일이 있으면 드롭다운으로 선택
+            const fileOptions = uploadedFiles.map(file => ({
+                value: file,
+                label: file
+            }))
+            // 기본 "파일 선택" 옵션 추가
+            fileOptions.unshift({ value: '', label: '📁 CSV 파일 선택...' })
+            
+            this.addControl('fileName', new SelectControl(fileOptions, ''))
+        } else {
+            // 업로드된 파일이 없으면 텍스트 입력
+            this.addControl('fileName', new ClassicPreset.InputControl('text', { initial: 'data.csv' }))
+        }
+        
         this.kind = 'dataLoader'
         this.category = 'ml-source'
+        this._controlHints = {
+            fileName: { label: '데이터 파일', title: 'CSV 파일을 선택하거나 경로를 입력하세요' }
+        }
     }
 }
 
@@ -93,11 +116,20 @@ export class ScalerNode extends TradeNode {
         this.addInput('X_test', new ClassicPreset.Input(numberSocket, 'X_test'))
         this.addOutput('X_train', new ClassicPreset.Output(numberSocket, 'X_train'))
         this.addOutput('X_test', new ClassicPreset.Output(numberSocket, 'X_test'))
-        this.addControl('method', new ClassicPreset.InputControl('text', { initial: 'StandardScaler' }))
+        
+        // Scaler 방법 드롭다운
+        const scalerOptions = [
+            { value: 'StandardScaler', label: 'StandardScaler (평균 0, 분산 1)' },
+            { value: 'MinMaxScaler', label: 'MinMaxScaler (0~1 범위)' },
+            { value: 'RobustScaler', label: 'RobustScaler (이상치 강건)' },
+            { value: 'MaxAbsScaler', label: 'MaxAbsScaler (-1~1 범위)' }
+        ]
+        
+        this.addControl('method', new SelectControl(scalerOptions, 'StandardScaler'))
         this.kind = 'scaler'
         this.category = 'ml-preprocessing'
         this._controlHints = {
-            method: { label: 'Scaler 방법', title: 'StandardScaler 또는 MinMaxScaler' }
+            method: { label: 'Scaler 방법', title: '데이터 스케일링 방법을 선택하세요' }
         }
     }
 }
@@ -121,10 +153,25 @@ export class ClassifierNode extends TradeNode {
         this.addInput('X_train', new ClassicPreset.Input(numberSocket, 'X_train'))
         this.addInput('y_train', new ClassicPreset.Input(numberSocket, 'y_train'))
         this.addOutput('model', new ClassicPreset.Output(numberSocket, 'model'))
-        this.addControl('algorithm', new ClassicPreset.InputControl('text', { initial: 'RandomForest' }))
+        
+        // 분류 알고리즘 드롭다운
+        const algorithmOptions = [
+            { value: 'RandomForest', label: 'Random Forest (앙상블)' },
+            { value: 'LogisticRegression', label: 'Logistic Regression (선형)' },
+            { value: 'SVM', label: 'SVM (서포트 벡터 머신)' },
+            { value: 'DecisionTree', label: 'Decision Tree (의사결정 트리)' },
+            { value: 'KNN', label: 'K-Nearest Neighbors (KNN)' },
+            { value: 'GradientBoosting', label: 'Gradient Boosting (부스팅)' }
+        ]
+        
+        this.addControl('algorithm', new SelectControl(algorithmOptions, 'RandomForest'))
         this.addControl('n_estimators', new ClassicPreset.InputControl('number', { initial: 100 }))
         this.kind = 'classifier'
         this.category = 'ml-model'
+        this._controlHints = {
+            algorithm: { label: '알고리즘', title: '분류 알고리즘 선택' },
+            n_estimators: { label: '트리 개수', title: 'RandomForest/GradientBoosting 전용' }
+        }
     }
 }
 
@@ -134,9 +181,23 @@ export class RegressorNode extends TradeNode {
         this.addInput('X_train', new ClassicPreset.Input(numberSocket, 'X_train'))
         this.addInput('y_train', new ClassicPreset.Input(numberSocket, 'y_train'))
         this.addOutput('model', new ClassicPreset.Output(numberSocket, 'model'))
-        this.addControl('algorithm', new ClassicPreset.InputControl('text', { initial: 'LinearRegression' }))
+        
+        // 회귀 알고리즘 드롭다운
+        const algorithmOptions = [
+            { value: 'LinearRegression', label: 'Linear Regression (선형 회귀)' },
+            { value: 'Ridge', label: 'Ridge (L2 정규화)' },
+            { value: 'Lasso', label: 'Lasso (L1 정규화)' },
+            { value: 'RandomForestRegressor', label: 'Random Forest Regressor' },
+            { value: 'SVR', label: 'SVR (서포트 벡터 회귀)' },
+            { value: 'GradientBoostingRegressor', label: 'Gradient Boosting Regressor' }
+        ]
+        
+        this.addControl('algorithm', new SelectControl(algorithmOptions, 'LinearRegression'))
         this.kind = 'regressor'
         this.category = 'ml-model'
+        this._controlHints = {
+            algorithm: { label: '알고리즘', title: '회귀 알고리즘 선택' }
+        }
     }
 }
 
@@ -211,7 +272,15 @@ export async function createAppEditor(container: HTMLElement): Promise<{
             customize: {
                 node() { return CustomNode },
                 socket() { return CustomSocket },
-                connection() { return CustomConnection }
+                connection() { return CustomConnection },
+                control(data: any) {
+                    // SelectControl을 커스텀 컴포넌트로 렌더링
+                    if (data.payload instanceof SelectControl) {
+                        return SelectControlComponent
+                    }
+                    // 기본 컨트롤은 Rete의 기본 렌더러 사용
+                    return null
+                }
             }
         })
     )
