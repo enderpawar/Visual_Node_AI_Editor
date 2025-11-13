@@ -1,6 +1,9 @@
 # ML Pipeline Builder
 
 머신러닝 파이프라인을 시각적으로 설계하고 Python 코드로 자동 변환하는 노드 기반 에디터입니다.
+<img width="3837" height="1979" alt="image" src="https://github.com/user-attachments/assets/ce1113d0-1e80-4c39-8a7a-3a38fc020fe8" />
+<img width="2807" height="1969" alt="image" src="https://github.com/user-attachments/assets/65d62a3e-1371-475e-ae65-b3c11e8078ff" />
+<img width="1431" height="1708" alt="image" src="https://github.com/user-attachments/assets/9df427fb-e75f-4d3c-a626-442566b9edfa" />
 
 ## ✨ 주요 기능
 
