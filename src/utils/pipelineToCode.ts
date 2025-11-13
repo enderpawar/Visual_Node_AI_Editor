@@ -125,10 +125,53 @@ function topologicalSort(nodes: NodeData[], connections: ConnectionData[]): Node
 }
 
 /**
+ * 노드 종류에 따른 간단한 변수명 생성
+ */
+function getSimpleVarName(node: NodeData, nodeIndex: Map<string, number>): string {
+    const kindMap: Record<string, string> = {
+        'dataLoader': 'data',
+        'dataSplit': 'split',
+        'scaler': 'scaler',
+        'featureSelection': 'feature',
+        'classifier': 'model',
+        'regressor': 'model',
+        'neuralNet': 'nn',
+        'evaluation': 'eval',
+        'tuning': 'tuner'
+    }
+    
+    const baseName = kindMap[node.kind] || 'step'
+    const index = nodeIndex.get(node.kind) || 0
+    nodeIndex.set(node.kind, index + 1)
+    
+    return index === 0 ? baseName : `${baseName}${index + 1}`
+}
+
+/**
  * 노드를 Python 코드로 변환
  */
-function nodeToCode(node: NodeData, connections: ConnectionData[], _nodeMap: Map<string, NodeData>): string {
-    const varName = `step_${node.id.replace(/[^a-zA-Z0-9]/g, '_')}`
+function nodeToCode(
+    node: NodeData, 
+    connections: ConnectionData[], 
+    nodeMap: Map<string, NodeData>, 
+    varName: string,
+    varNameMap?: Map<string, string>
+): string {
+    
+    // Helper: 연결된 소스 노드의 변수명 가져오기
+    const getSourceVarName = (targetNodeId: string, inputKey: string): string => {
+        const conn = connections.find(c => c.target === targetNodeId && c.targetInput === inputKey)
+        if (!conn) return 'data'
+        return varNameMap?.get(conn.source) || `step_${conn.source.replace(/[^a-zA-Z0-9]/g, '_')}`
+    }
+    
+    // Helper: 연결된 소스 노드의 출력 변수명 가져오기
+    const getSourceOutputVar = (targetNodeId: string, inputKey: string): string => {
+        const conn = connections.find(c => c.target === targetNodeId && c.targetInput === inputKey)
+        if (!conn) return 'data'
+        const sourceVarName = varNameMap?.get(conn.source) || `step_${conn.source.replace(/[^a-zA-Z0-9]/g, '_')}`
+        return `${sourceVarName}_${conn.sourceOutput}`
+    }
     
     switch (node.kind) {
         case 'dataLoader': {
@@ -149,8 +192,8 @@ import io
 import base64
 
 # Embedded CSV data (uploaded from browser)
-csv_content_${varName} = base64.b64decode('${base64Content}').decode('utf-8')
-${varName} = pd.read_csv(io.StringIO(csv_content_${varName}))
+csv_content = base64.b64decode('${base64Content}').decode('utf-8')
+${varName} = pd.read_csv(io.StringIO(csv_content))
 print(f"Data loaded from ${fileName}: {${varName}.shape}")
 print("\\nFirst 5 rows:")
 print(${varName}.head())`
@@ -167,62 +210,42 @@ print(${varName}.head())`
         case 'dataSplit': {
             const ratio = node.controls?.ratio || 0.8
             const targetColumn = node.controls?.targetColumn || 'target'
-            const inputConn = connections.find(c => c.target === node.id && c.targetInput === 'data')
-            const sourceVar = inputConn ? `step_${inputConn.source.replace(/[^a-zA-Z0-9]/g, '_')}` : 'df'
-            
-            // 각 출력에 명확한 변수명 부여
-            const nodeId = node.id.replace(/[^a-zA-Z0-9]/g, '_')
+            const sourceVar = getSourceVarName(node.id, 'data')
             
             return `# Train/Test Split
 # Target column: '${targetColumn}'
 X_all = ${sourceVar}.drop('${targetColumn}', axis=1)
 y_all = ${sourceVar}['${targetColumn}']
-step_${nodeId}_X_train, step_${nodeId}_X_test, step_${nodeId}_y_train, step_${nodeId}_y_test = train_test_split(
+${varName}_X_train, ${varName}_X_test, ${varName}_y_train, ${varName}_y_test = train_test_split(
     X_all, y_all, test_size=${(1 - ratio).toFixed(2)}, random_state=42
 )
-print(f"Train size: {{len(step_${nodeId}_X_train)}}, Test size: {{len(step_${nodeId}_X_test)}}")
+print(f"Train size: {{len(${varName}_X_train)}}, Test size: {{len(${varName}_X_test)}}")
 print(f"Target column: '${targetColumn}'")`
         }
         
         case 'scaler': {
             const method = node.controls?.method || 'StandardScaler'
             
-            // 입력 연결 찾기 - X_train과 X_test
-            const xTrainConn = connections.find(c => c.target === node.id && c.targetInput === 'X_train')
+            const xTrainVar = getSourceOutputVar(node.id, 'X_train')
             const xTestConn = connections.find(c => c.target === node.id && c.targetInput === 'X_test')
             
-            if (!xTrainConn) {
-                return `# WARNING: Scaler has no X_train input connection
-${varName} = ${method}()
-# Please connect X_train to this scaler node`
-            }
-            
-            const xTrainSourceId = xTrainConn.source.replace(/[^a-zA-Z0-9]/g, '_')
-            const xTrainSourceOutput = xTrainConn.sourceOutput
-            const xTrainVar = `step_${xTrainSourceId}_${xTrainSourceOutput}`
-            
-            const nodeId = node.id.replace(/[^a-zA-Z0-9]/g, '_')
-            
-            // X_test가 연결된 경우
             if (xTestConn) {
-                const xTestSourceId = xTestConn.source.replace(/[^a-zA-Z0-9]/g, '_')
-                const xTestSourceOutput = xTestConn.sourceOutput
-                const xTestVar = `step_${xTestSourceId}_${xTestSourceOutput}`
+                const xTestVar = getSourceOutputVar(node.id, 'X_test')
                 
                 return `# Scale Features (Train and Test)
 ${varName} = ${method}()
-step_${nodeId}_X_train = ${varName}.fit_transform(${xTrainVar})
-step_${nodeId}_X_test = ${varName}.transform(${xTestVar})
+${varName}_X_train = ${varName}.fit_transform(${xTrainVar})
+${varName}_X_test = ${varName}.transform(${xTestVar})
 print("Features scaled using ${method}")
-print(f"Scaled train shape: {step_${nodeId}_X_train.shape}")
-print(f"Scaled test shape: {step_${nodeId}_X_test.shape}")`
+print(f"Scaled train shape: {${varName}_X_train.shape}")
+print(f"Scaled test shape: {${varName}_X_test.shape}")`
             } else {
                 // X_test가 없는 경우 (X_train만)
                 return `# Scale Features (Train only)
 ${varName} = ${method}()
-step_${nodeId}_X_train = ${varName}.fit_transform(${xTrainVar})
+${varName}_X_train = ${varName}.fit_transform(${xTrainVar})
 print("Features scaled using ${method}")
-print(f"Scaled train shape: {step_${nodeId}_X_train.shape}")
+print(f"Scaled train shape: {${varName}_X_train.shape}")
 # Note: X_test not connected - only training data scaled`
             }
         }
@@ -607,13 +630,23 @@ export function generatePythonCode(graph: GraphData): string {
     const sortedNodes = topologicalSort(mlNodes, graph.connections)
     const nodeMap = new Map(mlNodes.map(n => [n.id, n]))
     
+    // 변수명 맵 생성 (간단한 이름 부여)
+    const varNameMap = new Map<string, string>()
+    const nodeIndex = new Map<string, number>()
+    
+    sortedNodes.forEach(node => {
+        const varName = getSimpleVarName(node, nodeIndex)
+        varNameMap.set(node.id, varName)
+    })
+    
     // Import 문 생성
     const imports = generateImports(mlNodes)
     
     // 각 노드를 코드로 변환
-    const codeBlocks = sortedNodes.map(node => 
-        nodeToCode(node, graph.connections, nodeMap)
-    )
+    const codeBlocks = sortedNodes.map(node => {
+        const varName = varNameMap.get(node.id) || 'data'
+        return nodeToCode(node, graph.connections, nodeMap, varName, varNameMap)
+    })
     
     // 전체 코드 조립
     return `${imports}
