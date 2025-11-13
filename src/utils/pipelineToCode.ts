@@ -444,6 +444,16 @@ print(f"Training score: {step_${nodeId}_model.score(${xTrainVar}, ${yTrainVar}):
             
             const nodeId = node.id.replace(/[^a-zA-Z0-9]/g, '_')
             
+            // Determine if this is a regression or classification task
+            // Check the model source node kind
+            let isRegression = false
+            if (modelConn) {
+                const modelSourceNode = nodeMap.get(modelConn.source)
+                if (modelSourceNode && modelSourceNode.kind === 'regressor') {
+                    isRegression = true
+                }
+            }
+            
             let evaluationCode = ''
             
             if (hasPrediction) {
@@ -451,7 +461,25 @@ print(f"Training score: {step_${nodeId}_model.score(${xTrainVar}, ${yTrainVar}):
                 const predSourceId = predictionConn!.source.replace(/[^a-zA-Z0-9]/g, '_')
                 const predVar = `step_${predSourceId}_${predictionConn!.sourceOutput}`
                 
-                evaluationCode = `# Evaluate Model (using pre-computed predictions)
+                if (isRegression) {
+                    evaluationCode = `# Evaluate Regression Model (using pre-computed predictions)
+step_${nodeId}_metrics = {
+    'mae': mean_absolute_error(${yTestVar}, ${predVar}),
+    'mse': mean_squared_error(${yTestVar}, ${predVar}),
+    'rmse': np.sqrt(mean_squared_error(${yTestVar}, ${predVar})),
+    'r2': r2_score(${yTestVar}, ${predVar})
+}
+print("="*60)
+print("📊 Regression Model Evaluation Results")
+print("="*60)
+print(f"R² Score (Coefficient of Determination): {step_${nodeId}_metrics['r2']:.4f}")
+print(f"  → Explains {step_${nodeId}_metrics['r2']*100:.2f}% of variance")
+print(f"Mean Absolute Error (MAE): {step_${nodeId}_metrics['mae']:.4f}")
+print(f"Mean Squared Error (MSE): {step_${nodeId}_metrics['mse']:.4f}")
+print(f"Root Mean Squared Error (RMSE): {step_${nodeId}_metrics['rmse']:.4f}")
+print("="*60)`
+                } else {
+                    evaluationCode = `# Evaluate Classification Model (using pre-computed predictions)
 step_${nodeId}_metrics = {
     'accuracy': accuracy_score(${yTestVar}, ${predVar})
 }
@@ -460,6 +488,7 @@ print("\\nClassification Report:")
 print(classification_report(${yTestVar}, ${predVar}))
 print("\\nConfusion Matrix:")
 print(confusion_matrix(${yTestVar}, ${predVar}))`
+                }
             } else {
                 // model로부터 예측 생성
                 const modelSourceId = modelConn!.source.replace(/[^a-zA-Z0-9]/g, '_')
@@ -468,7 +497,26 @@ print(confusion_matrix(${yTestVar}, ${predVar}))`
                 const modelVar = `step_${modelSourceId}_model`
                 const xTestVar = `step_${xTestSourceId}_${xTestConn!.sourceOutput}`
                 
-                evaluationCode = `# Evaluate Model
+                if (isRegression) {
+                    evaluationCode = `# Evaluate Regression Model
+y_pred = ${modelVar}.predict(${xTestVar})
+step_${nodeId}_metrics = {
+    'mae': mean_absolute_error(${yTestVar}, y_pred),
+    'mse': mean_squared_error(${yTestVar}, y_pred),
+    'rmse': np.sqrt(mean_squared_error(${yTestVar}, y_pred)),
+    'r2': r2_score(${yTestVar}, y_pred)
+}
+print("="*60)
+print("📊 Regression Model Evaluation Results")
+print("="*60)
+print(f"R² Score (Coefficient of Determination): {step_${nodeId}_metrics['r2']:.4f}")
+print(f"  → Explains {step_${nodeId}_metrics['r2']*100:.2f}% of variance")
+print(f"Mean Absolute Error (MAE): {step_${nodeId}_metrics['mae']:.4f}")
+print(f"Mean Squared Error (MSE): {step_${nodeId}_metrics['mse']:.4f}")
+print(f"Root Mean Squared Error (RMSE): {step_${nodeId}_metrics['rmse']:.4f}")
+print("="*60)`
+                } else {
+                    evaluationCode = `# Evaluate Classification Model
 y_pred = ${modelVar}.predict(${xTestVar})
 step_${nodeId}_metrics = {
     'accuracy': accuracy_score(${yTestVar}, y_pred)
@@ -478,6 +526,7 @@ print("\\nClassification Report:")
 print(classification_report(${yTestVar}, y_pred))
 print("\\nConfusion Matrix:")
 print(confusion_matrix(${yTestVar}, y_pred))`
+                }
             }
             
             return evaluationCode
@@ -504,10 +553,26 @@ print(confusion_matrix(${yTestVar}, y_pred))`
             
             const nodeId = node.id.replace(/[^a-zA-Z0-9]/g, '_')
             
-            return `# Make Predictions
+            const predictCode = `# Make Predictions
 step_${nodeId}_prediction = ${modelVar}.predict(${xTestVar})
 print(f"Predictions made: {len(step_${nodeId}_prediction)} samples")
-print(f"First 10 predictions: {step_${nodeId}_prediction[:10]}")`
+print(f"First 10 predictions: {step_${nodeId}_prediction[:10]}")
+
+# ========================================
+# Interactive Prediction Example
+# ========================================
+# You can use the trained model to make predictions on new data:
+# Example:
+#   new_data = [[value1, value2, ...]]  # Replace with actual feature values
+#   prediction = ${modelVar}.predict(new_data)
+#   print(f"Prediction: {prediction[0]}")
+#
+# For single-feature models (e.g., score prediction):
+#   input_value = 75  # Example: midterm score
+#   prediction = ${modelVar}.predict([[input_value]])
+#   print(f"Predicted output: {prediction[0]:.2f}")`
+            
+            return predictCode
         }
         
         case 'hyperparamTune': {
@@ -594,6 +659,7 @@ function generateImports(nodes: NodeData[]): string {
                 break
             case 'evaluate':
                 imports.add('from sklearn.metrics import accuracy_score, classification_report, confusion_matrix')
+                imports.add('from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score')
                 break
             case 'hyperparamTune':
                 imports.add('from sklearn.model_selection import GridSearchCV')
