@@ -269,6 +269,10 @@ export function CustomNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
       if (key === 'targetColumn') lbl = '타겟 컬럼';
       if (key === 'ratio') lbl = '학습 비율';
     }
+    if (label === 'Classifier') {
+      if (key === 'algorithm') lbl = '알고리즘';
+      if (key === 'n_estimators') lbl = '트리 개수';
+    }
     
     // Debug logging
     if (label === 'Data Split') {
@@ -396,6 +400,34 @@ export function CustomNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
                   step={key === 'ratio' ? '0.1' : undefined}
                   min={key === 'ratio' ? '0' : undefined}
                   max={key === 'ratio' ? '1' : undefined}
+                />
+              </div>
+            </div>
+          );
+        }
+        
+        // Classifier 노드의 경우 직접 input 렌더링
+        if (label === 'Classifier' && key === 'n_estimators') {
+          const ctrl: any = control as any;
+          const value = typeof ctrl.getValue === 'function' ? ctrl.getValue() : ctrl.value;
+          const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newValue = parseInt(e.target.value);
+            try {
+              if (typeof ctrl.setValue === 'function') ctrl.setValue(newValue);
+              else ctrl.value = newValue;
+            } catch {}
+          };
+          
+          return (
+            <div key={key} className="control-row">
+              {lbl && <div className="control-label">{lbl}</div>}
+              <div className="control">
+                <input
+                  type="number"
+                  value={value ?? 100}
+                  onChange={onChange}
+                  min="1"
+                  step="1"
                 />
               </div>
             </div>
