@@ -240,6 +240,13 @@ export function CustomNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
   const selected = props.data.selected || false;
   const { id, label, width, height } = props.data;
   const controlHints: ControlHints = props.data._controlHints || {};
+  
+  // Debug logging
+  if (label === 'Data Split') {
+    console.log('Data Split Node - controlHints:', controlHints);
+    console.log('Data Split Node - controls:', controls);
+  }
+  
   const resolveLabel = (key: string): string | undefined => {
     // Default from hint
     let lbl = controlHints[key]?.label || controlHints[key]?.title;
@@ -258,6 +265,16 @@ export function CustomNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
       if (key === 'periodLength' && !lbl) lbl = '기간';
       if (key === 'periodUnit' && !lbl) lbl = '단위';
     }
+    if (label === 'Data Split') {
+      if (key === 'targetColumn') lbl = '타겟 컬럼';
+      if (key === 'ratio') lbl = '학습 비율';
+    }
+    
+    // Debug logging
+    if (label === 'Data Split') {
+      console.log(`Resolving label for key "${key}": "${lbl}"`);
+    }
+    
     return lbl;
   };
 
@@ -300,6 +317,11 @@ export function CustomNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
       {controls.map(([key, control]) => {
         if (!control) return null;
         const lbl = resolveLabel(key);
+        
+        // Debug logging for Data Split
+        if (label === 'Data Split') {
+          console.log(`Control ${key}:`, control);
+        }
 
         // 직접 렌더 select: 특정 노드/키 조합에 대해 드롭다운 렌더링
         const nodeLabel = String(label);
@@ -351,15 +373,46 @@ export function CustomNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
         }
 
         // 기본 컨트롤은 기존처럼 RefControl 렌더
+        // Data Split 노드의 경우 직접 input 렌더링
+        if (label === 'Data Split') {
+          const ctrl: any = control as any;
+          const value = typeof ctrl.getValue === 'function' ? ctrl.getValue() : ctrl.value;
+          const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newValue = key === 'ratio' ? parseFloat(e.target.value) : e.target.value;
+            try {
+              if (typeof ctrl.setValue === 'function') ctrl.setValue(newValue);
+              else ctrl.value = newValue;
+            } catch {}
+          };
+          
+          return (
+            <div key={key} className="control-row">
+              {lbl && <div className="control-label">{lbl}</div>}
+              <div className="control">
+                <input
+                  type={key === 'ratio' ? 'number' : 'text'}
+                  value={value ?? ''}
+                  onChange={onChange}
+                  step={key === 'ratio' ? '0.1' : undefined}
+                  min={key === 'ratio' ? '0' : undefined}
+                  max={key === 'ratio' ? '1' : undefined}
+                />
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div key={key} className="control-row">
             {lbl && <div className="control-label">{lbl}</div>}
-            <RefControl
-              name="control"
-              emit={props.emit}
-              payload={control}
-              data-testid={`control-${key}`}
-            />
+            <div className="control">
+              <RefControl
+                name="control"
+                emit={props.emit}
+                payload={control}
+                data-testid={`control-${key}`}
+              />
+            </div>
           </div>
         );
       })}
