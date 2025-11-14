@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import geminiIcon from '../assets/gemini-color.png';
 
 // ---------------------------------------------------------------
 // 타이핑 애니메이션 컴포넌트
@@ -12,7 +13,7 @@ const TypingTitle = ({ pre = 'Turn your ideas into ', highlight = 'ML Pipeline' 
 
   useEffect(() => {
     let idx = 0;
-    const speed = 80;
+    const speed = 40;
     const timer = setInterval(() => {
       idx += 1;
       setI(idx);
@@ -28,7 +29,7 @@ const TypingTitle = ({ pre = 'Turn your ideas into ', highlight = 'ML Pipeline' 
   const done = i >= fullLen;
 
   return (
-    <h1 className="text-5xl md:text-6xl font-bold mb-6 text-center">
+    <h1 className="text-5xl md:text-6xl font-bold mb-6 text-center whitespace-nowrap">
       <span className="text-gray-100">{typedPre}</span>
       <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
         {typedHi}
@@ -152,7 +153,7 @@ const AssetPage = ({
   // 랜딩 화면
   if (showLanding) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
+      <div className="w-full min-h-screen flex items-center justify-center p-8 relative overflow-hidden transition-opacity duration-700 ease-in-out">
         {/* 배경 그라디언트 효과 */}
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-blue-500/5 to-purple-500/10"></div>
         <div className="absolute top-20 left-20 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -160,6 +161,28 @@ const AssetPage = ({
         
         {/* 메인 콘텐츠 */}
         <div className="relative z-10 max-w-4xl mx-auto text-center">
+          {/* CREATIVE AI 로고 */}
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-cyan-500/40">
+              {/* ML 로고 */}
+              <svg viewBox="0 0 100 100" className="w-10 h-10">
+                {/* 노드 연결 */}
+                <ellipse cx="50" cy="50" rx="35" ry="20" fill="none" stroke="#67e8f9" strokeWidth="2" opacity="0.6"/>
+                {/* 원형 노드 */}
+                <circle cx="25" cy="50" r="8" fill="white"/>
+                {/* 사각형 노드 */}
+                <rect x="42" y="42" width="16" height="16" fill="white"/>
+                {/* 삼각형 노드 */}
+                <path d="M75 58 L83 42 L67 42 Z" fill="white"/>
+                {/* 무한대 기호 */}
+                <text x="50" y="82" fontSize="16" fill="white" textAnchor="middle" fontWeight="bold">∞</text>
+              </svg>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent tracking-tight">
+              CREATIVE AI
+            </h1>
+          </div>
+
           <TypingTitle />
           
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
@@ -168,7 +191,16 @@ const AssetPage = ({
           
           {/* Start 버튼 */}
           <button
-            onClick={() => setShowLanding(false)}
+            onClick={() => {
+              // 페이드 아웃 효과를 위한 클래스 추가
+              const container = document.querySelector('.w-full.min-h-screen');
+              if (container) {
+                container.style.opacity = '0';
+                setTimeout(() => setShowLanding(false), 300);
+              } else {
+                setShowLanding(false);
+              }
+            }}
             className="group relative px-12 py-5 text-xl font-bold text-white rounded-2xl cursor-pointer transition-all duration-500 overflow-hidden
             bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 
             shadow-[0_20px_60px_-15px_rgba(34,211,238,0.6)] hover:shadow-[0_25px_70px_-15px_rgba(34,211,238,0.8)] 
@@ -188,14 +220,20 @@ const AssetPage = ({
             {[
               { icon: '🎯', title: '직관적 인터페이스', desc: '드래그 & 드롭으로 쉽게' },
               { icon: '⚡', title: '빠른 프로토타이핑', desc: 'Python 코드 자동 생성' },
-              { icon: '🤖', title: 'AI 지원', desc: 'Gemini로 노드 추천' }
+              { icon: 'gemini', title: 'AI 지원', desc: 'Gemini로 노드 추천' }
             ].map((feature, idx) => (
               <div 
                 key={idx}
                 className="p-6 rounded-xl themed-card border border-neutral-800/50 hover:border-cyan-500/40 transition-all duration-300"
                 style={{ animationDelay: `${idx * 200}ms` }}
               >
-                <div className="text-4xl mb-3">{feature.icon}</div>
+                {feature.icon === 'gemini' ? (
+                  <div className="mb-3 flex items-center justify-center mx-auto" style={{ width: '3rem', height: '3rem' }}>
+                    <img src={geminiIcon} alt="Gemini" className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="text-4xl mb-3 text-center">{feature.icon}</div>
+                )}
                 <h3 className="text-lg font-semibold text-cyan-400 mb-2">{feature.title}</h3>
                 <p className="text-sm text-gray-500">{feature.desc}</p>
               </div>
@@ -208,7 +246,7 @@ const AssetPage = ({
 
   // 메인 페이지
   return (
-    <div className="w-full max-w-6xl p-8 rounded-3xl shadow-2xl themed-card border border-neutral-800/70">
+    <div className="w-full max-w-6xl p-8 rounded-3xl shadow-2xl themed-card border border-neutral-800/70 animate-fadeIn">
       {/* 헤더 카드 - 그라디언트 배경과 글로우 효과 */}
       <div className="relative p-6 mb-6 rounded-2xl themed-card border border-neutral-800/70 overflow-hidden">
         {/* 배경 그라디언트 효과 */}

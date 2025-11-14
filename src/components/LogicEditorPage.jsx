@@ -824,10 +824,11 @@ ${userIntent}
                     <div className="mt-3 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
                         <p className="text-xs text-blue-300 font-semibold mb-2">📝 작성 팁:</p>
                         <ul className="text-xs text-gray-400 space-y-1">
-                            <li>• <span className="text-blue-400">데이터</span>: CSV 파일명, 컬럼명</li>
-                            <li>• <span className="text-green-400">목표</span>: 분류/회귀/클러스터링</li>
-                            <li>• <span className="text-red-400">금지</span>: 사용 금지 라이브러리</li>
-                            <li>• <span className="text-yellow-400">출력</span>: 저장할 파일명</li>
+                            <li>• <span className="text-400">데이터</span>: CSV 파일명, 컬럼명</li>
+                            <li>• <span className="text-400">목표</span>: 분류/회귀/클러스터링</li>
+                            <li>• <span className="text-400">금지</span>: 사용 금지 라이브러리</li>
+                            <li>• <span className="text-400">출력</span>: 저장할 파일명</li>
+                            <li>• <span className="text-400">TIP</span>: 간단히 작성하셔도 gemini가 양식에 맞춰 구체적 프롬프트로 구현합니다!</li>
                         </ul>
                     </div>
                 </div>

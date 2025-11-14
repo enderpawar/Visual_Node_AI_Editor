@@ -6,6 +6,7 @@ import {
     removeGeminiApiKey 
 } from '../utils/geminiPipeline';
 import { useToast } from './toast/ToastProvider.jsx';
+import geminiIcon from '../assets/gemini-color.png';
 
 /**
  * Gemini API를 사용한 Python 코드 생성 컴포넌트
@@ -116,9 +117,13 @@ const GeminiPipelineGenerator = ({ onApplyPipeline }) => {
                 <h3 style={{ 
                     margin: 0, 
                     fontSize: '18px',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
                 }}>
-                    🤖 노드 로직 배치 가이드 
+                    <img src={geminiIcon} alt="Gemini" style={{ width: '20px', height: '20px' }} />
+                    노드 로직 배치 가이드 
                 </h3>
                 {hasApiKey && !showApiKeyInput && (
                     <button
