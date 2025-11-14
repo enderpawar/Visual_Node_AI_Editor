@@ -938,12 +938,12 @@ ${userIntent}
                     {/* 모달 푸터 */}
                     <div className="flex flex-col gap-3 p-6 border-t border-neutral-700">
                         {/* CSV 다운로드 버튼 */}
-                        <button
+                        {/* <button
                             onClick={handleDownloadCSVFiles}
                             className="w-full px-4 py-3 text-base font-semibold text-white bg-teal-600 rounded-lg hover:bg-teal-500"
                         >
                             📊 CSV 파일 다운로드
-                        </button>
+                        </button> */}
 
                         {/* 다운로드 버튼들 */}
                         <div className="flex gap-3">
