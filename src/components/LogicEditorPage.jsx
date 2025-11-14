@@ -7,7 +7,6 @@ import { generatePythonCode, generateJupyterNotebook, generatePythonScript } fro
 import { enhanceCodeWithAI } from '../utils/geminiPipeline';
 import CSVDataManager from './CSVDataManager.jsx';
 import GeminiPipelineGenerator from './GeminiPipelineGenerator.jsx';
-import QuickStartTemplates from './QuickStartTemplates.jsx';
 import BeginnerGuide from './BeginnerGuide.jsx';
 
 // ----------------------------------------------------------------
@@ -312,11 +311,6 @@ const LogicEditorPage = ({ selectedLogicId, onBack, onSave, defaultNewLogicName 
 
     // AI로 코드 개선하기
     const handleEnhanceCode = useCallback(async () => {
-        if (!generatedCode) {
-            toast.error('먼저 코드를 생성해주세요.');
-            return;
-        }
-
         if (!userIntent.trim()) {
             setShowIntentInput(true);
             toast.error('코드의 목적을 입력해주세요.');
@@ -325,21 +319,45 @@ const LogicEditorPage = ({ selectedLogicId, onBack, onSave, defaultNewLogicName 
 
         setIsEnhancing(true);
         try {
-            const enhanced = await enhanceCodeWithAI(generatedCode, userIntent);
+            // 코드가 없으면 먼저 생성
+            let codeToEnhance = generatedCode;
+            if (!codeToEnhance) {
+                const editor = editorRef.current;
+                if (!editor) {
+                    toast.error('에디터가 초기화되지 않았습니다.');
+                    return;
+                }
+
+                const graph = exportGraph(editor, areaRef.current);
+                const validationErrors = validatePipeline(graph);
+                
+                if (validationErrors.length > 0) {
+                    toast.error(validationErrors.join('\n'));
+                    return;
+                }
+
+                codeToEnhance = generatePythonCode(graph);
+                setGeneratedCode(codeToEnhance);
+            }
+
+            // AI로 코드 개선
+            const enhanced = await enhanceCodeWithAI(codeToEnhance, userIntent);
             setEnhancedCode(enhanced);
             setShowEnhancedCode(true); // AI 개선 코드 표시
+            setShowCodePreview(true); // 코드 미리보기 모달 표시
+            
             // localStorage에 즉시 저장
             if (selectedLogicId) {
                 localStorage.setItem(`enhanced_code_${selectedLogicId}`, enhanced);
             }
-            toast.success('AI가 코드를 개선했습니다! ✨');
+            toast.success('AI가 코드를 생성하고 개선했습니다! ✨');
         } catch (error) {
             console.error('코드 개선 오류:', error);
-            toast.error(error.message || 'AI 코드 개선에 실패했습니다.');
+            toast.error(error.message || 'AI 코드 생성에 실패했습니다.');
         } finally {
             setIsEnhancing(false);
         }
-    }, [generatedCode, userIntent, selectedLogicId, toast]);
+    }, [generatedCode, userIntent, selectedLogicId, toast, editorRef, areaRef, validatePipeline]);
 
     // CSV 파일들 다운로드
     const handleDownloadCSVFiles = useCallback(() => {
@@ -909,9 +927,6 @@ ${logicName || 'ML Pipeline'}
 
                 {/* 초보자 가이드 */}
                 <BeginnerGuide theme={theme} />
-                
-                {/* 빠른 시작 템플릿 */}
-                <QuickStartTemplates onApplyTemplate={applyPipelineToCanvas} theme={theme} />
                 
                 {/* Gemini AI Python 코드 생성기 */}
                 <GeminiPipelineGenerator onApplyPipeline={applyPipelineToCanvas} />
