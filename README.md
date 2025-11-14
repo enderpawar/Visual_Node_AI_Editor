@@ -146,3 +146,16 @@ VITE_GEMINI_API_KEY=your_api_key_here
 
 MIT License
 
+이전 프로젝트 히스토리
+
+본 프로젝트는 Trade Builder 프로젝트에서 시작되어 ML Pipeline Builder로 전환되었습니다. 
+
+프로그램 설명 : 노드 기반 주식 매매 프로그램. UI 코드는 전부 ML Pipeline Builder의 제작자(enderpawar)가 개발하였으며 
+이 노드 기반 편집 페이지를 활용하여 ML PipeLine BUilder로 재활용하였음을 알립니다.
+
+메인 화면:
+<img width="3840" height="2160" alt="image" src="https://github.com/user-attachments/assets/911da0c4-8913-45e4-99ab-7ba525c66918" />
+
+에디터 화면:
+<img width="3840" height="2160" alt="image" src="https://github.com/user-attachments/assets/9a6cadd0-2e76-4494-b8db-ea117510e977" />
+
