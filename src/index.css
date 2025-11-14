@@ -74,42 +74,42 @@
 }
 
 :root[data-theme='light'] {
-    --app-bg: #fafafa; /* neutral-50 */
-    --text-primary: #111827; /* gray-900 */
+    --app-bg: #f8fafc; /* 더 부드러운 배경 */
+    --text-primary: #1e293b; /* slate-800 */
     --panel-bg: #ffffff;
-    --panel-border: #e5e7eb; /* gray-200 */
+    --panel-border: #e2e8f0; /* slate-200 */
         --panel-grad-from: #ffffff;
-        --panel-grad-to: #f1f5f9; /* slate-100 */
-    --accent: #06b6d4; /* cyan-500 */
-    --accent-weak: rgba(6, 182, 212, 0.25);
+        --panel-grad-to: #f8fafc; /* slate-50 */
+    --accent: #0891b2; /* cyan-600 - 더 차분한 색상 */
+    --accent-weak: rgba(8, 145, 178, 0.15); /* 더 연한 강조색 */
 
     --node-bg-start: #ffffff;
     --node-bg-end: #f8fafc; /* slate-50 */
-    --node-border: #e5e7eb;
-    --title-color: #111827;
-    --io-title-color: #111827;
-    --muted: #6b7280; /* gray-500 */
+    --node-border: #e2e8f0;
+    --title-color: #1e293b;
+    --io-title-color: #1e293b;
+    --muted: #64748b; /* slate-500 */
 
-    --control-bg: #ffffff;
-    --control-fg: #111827;
-    --control-border: #d1d5db; /* gray-300 */
+    --control-bg: #f8fafc; /* 더 부드러운 컨트롤 배경 */
+    --control-fg: #1e293b;
+    --control-border: #cbd5e1; /* slate-300 */
 
     --socket-grad-1: #e0f2fe; /* sky-100 */
     --socket-grad-2: #f1f5f9; /* slate-100 */
     --socket-border: #cbd5e1; /* slate-300 */
 
-    --conn-stroke: #06b6d4; /* cyan-500 */
+    --conn-stroke: #0891b2; /* cyan-600 */
 
-    --canvas-bg: #f5f7fb;
+    --canvas-bg: #f8fafc;
 
     /* softer grid for light */
-    --grid-major: rgba(0, 0, 0, 0.12);
-    --grid-minor: rgba(0, 0, 0, 0.06);
+    --grid-major: rgba(0, 0, 0, 0.08);
+    --grid-minor: rgba(0, 0, 0, 0.04);
 
     color-scheme: light;
 
         /* sidebar section bar */
-        --section-bar-bg: rgba(17, 24, 39, 0.06); /* gray-900 @ 6% */
+        --section-bar-bg: rgba(30, 41, 59, 0.04); /* slate-800 @ 4% */
 }
 
 html, body {

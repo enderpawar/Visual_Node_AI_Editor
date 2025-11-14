@@ -121,6 +121,7 @@ const App = () => {
           onLogicClick={handleLogicClick}
           onAddNewLogic={handleAddNewLogic}
           onDeleteLogic={handleDeleteLogic}
+          theme={theme}
           onReorderLogics={async (items)=>{
             // items: [{id,name,stock?,order?, _temp?}]
             setLogics(items);

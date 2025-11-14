@@ -48,7 +48,8 @@ const AssetPage = ({
   onLogicClick,
   onDeleteLogic,
   onReorderLogics,
-  onCreateLogic
+  onCreateLogic,
+  theme
 }) => {
   // 초기 상태를 로직 개수에 따라 설정 (깜빡임 방지)
   const [showLanding, setShowLanding] = useState(logics.length === 0);
@@ -310,46 +311,173 @@ const AssetPage = ({
         </div>
       </div>
 
-      {/* KPI 카드 4개 - 개선된 디자인 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[{
-          title:'총 로직 수', value: String(logics.length||0), icon: '📊', color: 'cyan'
-        },{
-          title:'실행 중', value: '0', icon: '⚡', color: 'yellow'
-        },{
-          title:'AI 적중률', value: '0.00%', icon: '🎯', color: 'green'
-        },{
-          title:'생성된 로직 수', value: '0', icon: '✨', color: 'purple'
-        }].map((s,idx)=> (
-          <div 
-            key={idx} 
-            className="group relative p-5 rounded-2xl themed-card border border-neutral-800/70 hover:border-cyan-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 hover:-translate-y-1"
-          >
-            {/* 배경 글로우 효과 */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/5 group-hover:to-blue-500/5 rounded-2xl transition-all duration-300"></div>
-            
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-xs uppercase tracking-wide text-gray-400 font-semibold">{s.title}</div>
-                <span className="text-xl opacity-60 group-hover:opacity-100 transition-opacity">{s.icon}</span>
-              </div>
-              <div className="text-3xl font-bold text-gray-100 mb-3">{s.value}</div>
-              {/* 미니 바 차트 - 애니메이션 추가 */}
-              <div className="h-10 flex items-end gap-1">
-                {[4,8,3,6,9,5,7,6,8,10].map((h,i)=> (
-                  <div 
-                    key={i} 
-                    className="w-1.5 bg-gradient-to-t from-cyan-500/60 to-cyan-400/40 rounded-sm transition-all duration-300 group-hover:from-cyan-400 group-hover:to-cyan-300" 
-                    style={{
-                      height:`${h*6}%`,
-                      animationDelay: `${i * 50}ms`
-                    }} 
-                  />
-                ))}
-              </div>
+      {/* 최근 활동 타임라인 */}
+      <div className="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 타임라인 (2/3) */}
+        <div className="lg:col-span-2 p-6 rounded-2xl themed-card border border-neutral-800/70 relative overflow-hidden">
+          {/* 배경 그라디언트 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-purple-500/5 pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-100 flex items-center gap-2">
+                <span className="text-cyan-400">⏱️</span>
+                최근 활동
+              </h3>
+              <span className="text-xs text-gray-500">실시간 업데이트</span>
             </div>
+            
+            {logics.length > 0 ? (
+              <div className="space-y-3">
+                {logics.slice(0, 3).map((logic, idx) => {
+                  // ID에서 타임스탬프 추출 (logic-{timestamp}-{random} 형식)
+                  const match = logic.id.match(/logic-(\d+)-/);
+                  const timestamp = match ? parseInt(match[1]) : Date.now();
+                  const date = new Date(timestamp);
+                  const now = new Date();
+                  const diffMs = now - date;
+                  const diffMins = Math.floor(diffMs / 60000);
+                  const diffHours = Math.floor(diffMs / 3600000);
+                  const diffDays = Math.floor(diffMs / 86400000);
+                  
+                  let timeAgo = '';
+                  if (diffMins < 1) timeAgo = '방금 전';
+                  else if (diffMins < 60) timeAgo = `${diffMins}분 전`;
+                  else if (diffHours < 24) timeAgo = `${diffHours}시간 전`;
+                  else timeAgo = `${diffDays}일 전`;
+                  
+                  return (
+                    <div 
+                      key={logic.id}
+                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-cyan-500/5 transition-all duration-200 cursor-pointer group"
+                      onClick={() => onLogicClick(logic.id)}
+                    >
+                      {/* 타임라인 도트 */}
+                      <div className="flex-shrink-0 w-2 h-2 rounded-full bg-cyan-400 group-hover:scale-150 transition-transform"></div>
+                      
+                      {/* 로직 정보 */}
+                      <div className="flex-grow min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-200 truncate group-hover:text-cyan-300 transition-colors">
+                            {logic.name}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                            편집됨
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      
+                      {/* 시간 표시 */}
+                      <div className="flex-shrink-0 text-xs text-gray-500 font-medium">
+                        {timeAgo}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">📝</div>
+                <p className="text-sm">아직 활동 내역이 없습니다</p>
+                <p className="text-xs mt-1">새 로직을 만들어보세요!</p>
+              </div>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* 활동 그래프 (1/3) */}
+        <div className="p-6 rounded-2xl themed-card border border-neutral-800/70 relative overflow-hidden">
+          {/* 배경 그라디언트 */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-cyan-500/5 pointer-events-none"></div>
+          
+          <div className="relative z-10">
+            <h3 className="text-sm font-semibold text-gray-100 mb-4 flex items-center gap-2">
+              <span className="text-purple-400">📊</span>
+              5일간 활동
+            </h3>
+            
+            {(() => {
+              // 지난 5일간의 날짜 계산
+              const days = [];
+              const today = new Date();
+              for (let i = 4; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                days.push(d);
+              }
+              
+              // 각 날짜별 로직 생성 개수 계산
+              const activityMap = {};
+              logics.forEach(logic => {
+                const match = logic.id.match(/logic-(\d+)-/);
+                if (match) {
+                  const timestamp = parseInt(match[1]);
+                  const date = new Date(timestamp);
+                  const dateKey = date.toISOString().split('T')[0];
+                  activityMap[dateKey] = (activityMap[dateKey] || 0) + 1;
+                }
+              });
+              
+              // 최대값 계산 (스케일링용)
+              const maxActivity = Math.max(...days.map(d => activityMap[d.toISOString().split('T')[0]] || 0), 1);
+              
+              return (
+                <div className="space-y-3">
+                  {days.map((day, idx) => {
+                    const dateKey = day.toISOString().split('T')[0];
+                    const count = activityMap[dateKey] || 0;
+                    const percentage = maxActivity > 0 ? (count / maxActivity) * 100 : 0;
+                    const isToday = idx === 4;
+                    
+                    return (
+                      <div key={idx} className="group">
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                          <span className={isToday ? 'text-cyan-400 font-semibold' : ''}>
+                            {day.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                            {isToday && ' (오늘)'}
+                          </span>
+                          <span className={`font-medium ${count > 0 ? 'text-cyan-400' : 'text-gray-600'}`}>
+                            {count}
+                          </span>
+                        </div>
+                        <div className="h-2 bg-neutral-800/50 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-500 ease-out"
+                            style={{
+                              width: `${percentage}%`,
+                              background: count > 0 
+                                ? 'linear-gradient(90deg, rgba(34, 211, 238, 0.8), rgba(168, 85, 247, 0.8))'
+                                : 'transparent'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* 통계 요약 */}
+                  <div className="mt-6 pt-4 border-t border-neutral-800/50">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-2 rounded-lg bg-cyan-500/5">
+                        <div className="text-xs text-gray-500 mb-1">총 로직</div>
+                        <div className="text-xl font-bold text-cyan-400">{logics.length}</div>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-purple-500/5">
+                        <div className="text-xs text-gray-500 mb-1">최근 5일</div>
+                        <div className="text-xl font-bold text-purple-400">
+                          {Object.values(activityMap).reduce((sum, val) => sum + val, 0)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -406,7 +534,7 @@ const AssetPage = ({
                               />
                             ) : (
                               <div className="flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-400 text-sm font-bold">
+                                <span className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 text-sm font-bold">
                                   {index + 1}
                                 </span>
                                 <span className="text-base font-medium text-gray-100 group-hover:text-cyan-300 transition-colors">
